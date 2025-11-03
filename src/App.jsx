@@ -8,11 +8,7 @@ const EmployeeKiosk = () => {
   const [currentDate, setCurrentDate] = useState('');
   const [message, setMessage] = useState('');
   const [loading, setLoading] = useState(false);
-
-  // BREAK TIMER STATE
-  const [breakSince, setBreakSince] = useState(null);    // ISO string (or null)
-  const [breakTicker, setBreakTicker] = useState('00:00:00'); // rendered HH:MM:SS
-
+  
   // HARDCODED n8n WEBHOOKS (history removed)
   const [config] = useState({
     n8nGetEmployeesUrl: 'https://primary-production-191cf.up.railway.app/webhook/get-employees',
@@ -21,17 +17,6 @@ const EmployeeKiosk = () => {
     n8nStartBreakUrl: 'https://primary-production-191cf.up.railway.app/webhook/start-break',
     n8nEndBreakUrl: 'https://primary-production-191cf.up.railway.app/webhook/end-break'
   });
-
-  // Helpers
-  const pad2 = (n) => String(n).padStart(2, '0');
-  const formatElapsed = (ms) => {
-    if (ms < 0 || !Number.isFinite(ms)) return '00:00:00';
-    const totalSec = Math.floor(ms / 1000);
-    const h = Math.floor(totalSec / 3600);
-    const m = Math.floor((totalSec % 3600) / 60);
-    const s = totalSec % 60;
-    return `${pad2(h)}:${pad2(m)}:${pad2(s)}`;
-  };
 
   // Update time every second
   useEffect(() => {
@@ -57,6 +42,7 @@ const EmployeeKiosk = () => {
       setCurrentTime(timeStr);
       setCurrentDate(dateStr);
     };
+    
     updateTime();
     const interval = setInterval(updateTime, 1000);
     return () => clearInterval(interval);
@@ -66,34 +52,6 @@ const EmployeeKiosk = () => {
   useEffect(() => {
     fetchEmployees();
   }, []);
-
-  // When selecting an employee, initialize the break timer if we have a breakStart
-  useEffect(() => {
-    if (selectedEmployee?.onBreak) {
-      // If your /get-employees returns breakStart: use it. Otherwise timer starts when Start Break is pressed.
-      const start = selectedEmployee.breakStart || breakSince; 
-      setBreakSince(start || null);
-    } else {
-      setBreakSince(null);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedEmployee?.id, selectedEmployee?.onBreak, selectedEmployee?.breakStart]);
-
-  // Live ticker for the break timer
-  useEffect(() => {
-    if (!breakSince) {
-      setBreakTicker('00:00:00');
-      return;
-    }
-    const id = setInterval(() => {
-      const ms = Date.now() - new Date(breakSince).getTime();
-      setBreakTicker(formatElapsed(ms));
-    }, 1000);
-    // run once immediately so we don't wait 1s for first tick
-    const ms = Date.now() - new Date(breakSince).getTime();
-    setBreakTicker(formatElapsed(ms));
-    return () => clearInterval(id);
-  }, [breakSince]);
 
   const fetchEmployees = async () => {
     try {
@@ -151,21 +109,18 @@ const EmployeeKiosk = () => {
     if (!selectedEmployee) return;
     setLoading(true);
     setMessage('');
-    const startedAt = new Date().toISOString();
     try {
       const response = await post(config.n8nStartBreakUrl, {
         timesheetId: selectedEmployee.currentTimesheetId,
-        breakStart: startedAt
+        breakStart: new Date().toISOString()
       });
       if (response.ok) {
-        // update list + selected
         setEmployees(prev => prev.map(emp => 
           emp.id === selectedEmployee.id 
-            ? { ...emp, onBreak: true, breakStart: startedAt }
+            ? { ...emp, onBreak: true }
             : emp
         ));
-        setSelectedEmployee({ ...selectedEmployee, onBreak: true, breakStart: startedAt });
-        setBreakSince(startedAt); // start local timer immediately
+        setSelectedEmployee({ ...selectedEmployee, onBreak: true });
         setMessage('✓ Break started!');
       } else {
         setMessage('✗ Error: Failed to start break');
@@ -189,11 +144,10 @@ const EmployeeKiosk = () => {
       if (response.ok) {
         setEmployees(prev => prev.map(emp => 
           emp.id === selectedEmployee.id 
-            ? { ...emp, onBreak: false, breakStart: null }
+            ? { ...emp, onBreak: false }
             : emp
         ));
-        setSelectedEmployee({ ...selectedEmployee, onBreak: false, breakStart: null });
-        setBreakSince(null); // stop timer
+        setSelectedEmployee({ ...selectedEmployee, onBreak: false });
         setMessage('✓ Break ended!');
       } else {
         setMessage('✗ Error: Failed to end break');
@@ -217,11 +171,10 @@ const EmployeeKiosk = () => {
       if (response.ok) {
         setEmployees(prev => prev.map(emp => 
           emp.id === selectedEmployee.id 
-            ? { ...emp, active: false, onBreak: false, currentTimesheetId: null, breakStart: null }
+            ? { ...emp, active: false, onBreak: false, currentTimesheetId: null }
             : emp
         ));
-        setSelectedEmployee({ ...selectedEmployee, active: false, onBreak: false, currentTimesheetId: null, breakStart: null });
-        setBreakSince(null); // ensure timer cleared
+        setSelectedEmployee({ ...selectedEmployee, active: false, onBreak: false, currentTimesheetId: null });
         setMessage('✓ Successfully clocked out!');
       } else {
         setMessage('✗ Error: Failed to clock out');
@@ -266,10 +219,8 @@ const EmployeeKiosk = () => {
                     {employee.name}
                   </span>
                 </div>
-
-                {/* Small badge on the list if on break */}
                 {employee.onBreak && (
-                  <span className="text-yellow-400 text-xs font-medium flex items-center gap-2">
+                  <span className="text-yellow-400 text-xs font-medium">
                     On Break
                   </span>
                 )}
@@ -329,7 +280,7 @@ const EmployeeKiosk = () => {
                 <div className="w-14 h-14 rounded-full bg-emerald-600/20 flex items-center justify-center border-2 border-emerald-500">
                   <User className="w-7 h-7 text-emerald-400" />
                 </div>
-                <div className="flex-1">
+                <div>
                   <h3 className="text-xl font-bold text-white">
                     {selectedEmployee.name}
                   </h3>
@@ -341,13 +292,6 @@ const EmployeeKiosk = () => {
                      selectedEmployee.active ? '● Currently clocked in' : 'Not clocked in'}
                   </p>
                 </div>
-
-                {/* BIG BREAK TIMER PILL */}
-                {selectedEmployee.onBreak && (
-                  <div className="px-3 py-1 rounded-full bg-yellow-500/20 border border-yellow-500/40 text-yellow-300 font-mono text-sm">
-                    {breakTicker}
-                  </div>
-                )}
               </div>
 
               {/* Action Buttons */}
@@ -368,7 +312,7 @@ const EmployeeKiosk = () => {
                     className="w-full py-5 bg-yellow-600 hover:bg-yellow-700 text-white rounded-xl font-bold text-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-3 shadow-lg shadow-yellow-600/30"
                   >
                     <Coffee className="w-5 h-5" />
-                    End Break — {breakTicker}
+                    End Break
                   </button>
                 ) : (
                   <>
