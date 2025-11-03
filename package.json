@@ -4,9 +4,8 @@
   "private": true,
   "scripts": {
     "dev": "vite",
-    "start": "vite",
     "build": "vite build",
-    "preview": "vite preview"
+    "preview": "vite preview --host 0.0.0.0 --port ${PORT:-8080}"
   },
   "dependencies": {
     "lucide-react": "^0.263.1",
