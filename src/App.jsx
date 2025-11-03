@@ -1,24 +1,21 @@
 import React, { useState, useEffect } from 'react';
-import { Clock, LogIn, LogOut, User, CheckCircle, History, Coffee } from 'lucide-react';
+import { Clock, LogIn, LogOut, User, CheckCircle, Coffee } from 'lucide-react';
 
 const EmployeeKiosk = () => {
   const [employees, setEmployees] = useState([]);
   const [selectedEmployee, setSelectedEmployee] = useState(null);
-  const [employeeHistory, setEmployeeHistory] = useState([]);
   const [currentTime, setCurrentTime] = useState('');
   const [currentDate, setCurrentDate] = useState('');
   const [message, setMessage] = useState('');
   const [loading, setLoading] = useState(false);
-  const [loadingHistory, setLoadingHistory] = useState(false);
   
-  // HARDCODED n8n WEBHOOKS (as requested)
+  // HARDCODED n8n WEBHOOKS (history removed)
   const [config] = useState({
     n8nGetEmployeesUrl: 'https://primary-production-191cf.up.railway.app/webhook/get-employees',
     n8nClockInUrl: 'https://primary-production-191cf.up.railway.app/webhook/clock-in',
     n8nClockOutUrl: 'https://primary-production-191cf.up.railway.app/webhook/clock-out',
     n8nStartBreakUrl: 'https://primary-production-191cf.up.railway.app/webhook/start-break',
-    n8nEndBreakUrl: 'https://primary-production-191cf.up.railway.app/webhook/end-break',
-    n8nGetHistoryUrl: 'https://primary-production-191cf.up.railway.app/webhook/get-history'
+    n8nEndBreakUrl: 'https://primary-production-191cf.up.railway.app/webhook/end-break'
   });
 
   // Update time every second
@@ -56,13 +53,6 @@ const EmployeeKiosk = () => {
     fetchEmployees();
   }, []);
 
-  // Fetch history when employee is selected
-  useEffect(() => {
-    if (selectedEmployee) {
-      fetchEmployeeHistory(selectedEmployee);
-    }
-  }, [selectedEmployee]);
-
   const fetchEmployees = async () => {
     try {
       const response = await fetch(config.n8nGetEmployeesUrl);
@@ -83,51 +73,8 @@ const EmployeeKiosk = () => {
     }
   };
 
-  const fetchEmployeeHistory = async (employee) => {
-    setLoadingHistory(true);
-    try {
-      const response = await fetch(config.n8nGetHistoryUrl, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          employeeId: employee.id,
-          employeeName: employee.name
-        })
-      });
-      
-      if (response.ok) {
-        const data = await response.json();
-        setEmployeeHistory(data.history || []);
-      }
-    } catch (error) {
-      console.error('Error fetching history:', error);
-      setEmployeeHistory([]);
-    }
-    setLoadingHistory(false);
-  };
-
-  const formatDateTime = (dateString) => {
-    const date = new Date(dateString);
-    return date.toLocaleString('en-NO', {
-      timeZone: 'Europe/Oslo',
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    });
-  };
-
-  const calculateDuration = (clockIn, clockOut) => {
-    if (!clockOut) return 'In progress';
-    const duration = new Date(clockOut) - new Date(clockIn);
-    const hours = Math.floor(duration / (1000 * 60 * 60));
-    const minutes = Math.floor((duration % (1000 * 60 * 60)) / (1000 * 60));
-    return `${hours}h ${minutes}m`;
-  };
-
-  const post = (url, body) => fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+  const post = (url, body) =>
+    fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
 
   const handleClockIn = async () => {
     if (!selectedEmployee) return;
@@ -146,11 +93,10 @@ const EmployeeKiosk = () => {
             ? { ...emp, active: true, onBreak: false, currentTimesheetId: data.timesheetId }
             : emp
         ));
-        setSelectedEmployee({...selectedEmployee, active: true, onBreak: false, currentTimesheetId: data.timesheetId});
-        setMessage(`✓ Successfully clocked in!`);
-        await fetchEmployeeHistory(selectedEmployee);
+        setSelectedEmployee({ ...selectedEmployee, active: true, onBreak: false, currentTimesheetId: data.timesheetId });
+        setMessage('✓ Successfully clocked in!');
       } else {
-        setMessage(`✗ Error: Failed to clock in`);
+        setMessage('✗ Error: Failed to clock in');
       }
     } catch (error) {
       setMessage(`✗ Error: ${error.message}`);
@@ -174,10 +120,10 @@ const EmployeeKiosk = () => {
             ? { ...emp, onBreak: true }
             : emp
         ));
-        setSelectedEmployee({...selectedEmployee, onBreak: true});
-        setMessage(`✓ Break started!`);
+        setSelectedEmployee({ ...selectedEmployee, onBreak: true });
+        setMessage('✓ Break started!');
       } else {
-        setMessage(`✗ Error: Failed to start break`);
+        setMessage('✗ Error: Failed to start break');
       }
     } catch (error) {
       setMessage(`✗ Error: ${error.message}`);
@@ -201,11 +147,10 @@ const EmployeeKiosk = () => {
             ? { ...emp, onBreak: false }
             : emp
         ));
-        setSelectedEmployee({...selectedEmployee, onBreak: false});
-        setMessage(`✓ Break ended!`);
-        await fetchEmployeeHistory(selectedEmployee);
+        setSelectedEmployee({ ...selectedEmployee, onBreak: false });
+        setMessage('✓ Break ended!');
       } else {
-        setMessage(`✗ Error: Failed to end break`);
+        setMessage('✗ Error: Failed to end break');
       }
     } catch (error) {
       setMessage(`✗ Error: ${error.message}`);
@@ -229,11 +174,10 @@ const EmployeeKiosk = () => {
             ? { ...emp, active: false, onBreak: false, currentTimesheetId: null }
             : emp
         ));
-        setSelectedEmployee({...selectedEmployee, active: false, onBreak: false, currentTimesheetId: null});
-        setMessage(`✓ Successfully clocked out!`);
-        await fetchEmployeeHistory(selectedEmployee);
+        setSelectedEmployee({ ...selectedEmployee, active: false, onBreak: false, currentTimesheetId: null });
+        setMessage('✓ Successfully clocked out!');
       } else {
-        setMessage(`✗ Error: Failed to clock out`);
+        setMessage('✗ Error: Failed to clock out');
       }
     } catch (error) {
       setMessage(`✗ Error: ${error.message}`);
@@ -291,7 +235,7 @@ const EmployeeKiosk = () => {
         </div>
       </div>
 
-      {/* Right Side - Clock In/Out & History */}
+      {/* Right Side - Clock In/Out */}
       <div className="w-1/2 p-8 flex flex-col overflow-y-auto">
         {/* Header with Time */}
         <div className="text-center mb-6">
@@ -392,10 +336,7 @@ const EmployeeKiosk = () => {
                 )}
 
                 <button
-                  onClick={() => {
-                    setSelectedEmployee(null);
-                    setEmployeeHistory([]);
-                  }}
+                  onClick={() => setSelectedEmployee(null)}
                   className="w-full py-3 bg-gray-700 hover:bg-gray-600 text-white rounded-xl font-medium transition-all duration-200"
                 >
                   Cancel
@@ -403,56 +344,7 @@ const EmployeeKiosk = () => {
               </div>
             </div>
 
-            {/* History Section */}
-            <div className="bg-gray-800/50 rounded-2xl p-6 border border-gray-700 flex-1 overflow-hidden flex flex-col">
-              <div className="flex items-center gap-2 mb-4">
-                <History className="w-5 h-5 text-emerald-500" />
-                <h3 className="text-lg font-bold text-white">This Month's History</h3>
-              </div>
-
-              {loadingHistory ? (
-                <div className="text-center text-gray-400 py-8">
-                  Loading history...
-                </div>
-              ) : employeeHistory.length === 0 ? (
-                <div className="text-center text-gray-500 py-8">
-                  <p>No clock-in records this month</p>
-                </div>
-              ) : (
-                <div className="space-y-2 overflow-y-auto flex-1">
-                  {employeeHistory.map((entry, index) => (
-                    <div
-                      key={entry.id || index}
-                      className="bg-gray-900/50 rounded-lg p-4 border border-gray-700"
-                    >
-                      <div className="flex justify-between items-start mb-2">
-                        <div className="flex-1">
-                          <div className="text-white font-medium text-sm mb-1">
-                            Clock In: {formatDateTime(entry.clockIn)}
-                          </div>
-                          <div className="text-gray-400 text-sm">
-                            Clock Out: {entry.clockOut ? formatDateTime(entry.clockOut) : 'Still active'}
-                          </div>
-                          {entry.breakStart && (
-                            <div className="text-yellow-400 text-xs mt-2 border-t border-gray-700 pt-2">
-                              Break: {formatDateTime(entry.breakStart)} - {entry.breakEnd ? formatDateTime(entry.breakEnd) : 'Active'}
-                              {entry.breakDuration && ` (${entry.breakDuration} min)`}
-                            </div>
-                          )}
-                        </div>
-                        <div className={`text-sm font-bold px-3 py-1 rounded-full ${
-                          entry.clockOut 
-                            ? 'bg-emerald-500/20 text-emerald-400' 
-                            : 'bg-yellow-500/20 text-yellow-400'
-                        }`}>
-                          {calculateDuration(entry.clockIn, entry.clockOut)}
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
+            {/* (History section removed) */}
           </div>
         ) : (
           <div className="flex-1 flex items-center justify-center">
