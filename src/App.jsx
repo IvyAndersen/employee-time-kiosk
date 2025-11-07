@@ -190,11 +190,11 @@ const EmployeeKiosk = () => {
     <div
       className="
         flex bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900
-        min-h-[100svh] md:min-h-screen overflow-hidden
+        min-h-[100svh] md:min-h-screen h-[100svh] md:h-screen overflow-hidden
       "
     >
-      {/* Left Side - Employee List */}
-      <div className="w-1/2 min-h-0 border-r border-gray-700 p-8 overflow-y-auto ios-scroll">
+      {/* Left Side - Employee List (ONLY this side scrolls) */}
+      <div className="w-1/2 min-h-0 h-[100svh] border-r border-gray-700 p-8 overflow-y-auto ios-scroll">
         <div className="mb-8">
           <h2 className="text-3xl font-bold text-white mb-2">Employees</h2>
           <p className="text-gray-400">Select your name to continue</p>
@@ -240,8 +240,8 @@ const EmployeeKiosk = () => {
         </div>
       </div>
 
-      {/* Right Side - Clock In/Out */}
-      <div className="w-1/2 min-h-0 p-8 flex flex-col overflow-y-auto ios-scroll">
+      {/* Right Side - Clock In/Out (NO scrolling) */}
+      <div className="w-1/2 min-h-0 h-[100svh] p-8 flex flex-col overflow-hidden">
         {/* Header with Time */}
         <div className="text-center mb-6">
           <div className="flex items-center justify-center gap-3 mb-4">
