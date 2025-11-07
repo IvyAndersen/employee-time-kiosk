@@ -187,9 +187,14 @@ const EmployeeKiosk = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 flex">
+    <div
+      className="
+        flex bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900
+        min-h-[100svh] md:min-h-screen overflow-hidden
+      "
+    >
       {/* Left Side - Employee List */}
-      <div className="w-1/2 border-r border-gray-700 p-8 overflow-y-auto">
+      <div className="w-1/2 min-h-0 border-r border-gray-700 p-8 overflow-y-auto ios-scroll">
         <div className="mb-8">
           <h2 className="text-3xl font-bold text-white mb-2">Employees</h2>
           <p className="text-gray-400">Select your name to continue</p>
@@ -236,7 +241,7 @@ const EmployeeKiosk = () => {
       </div>
 
       {/* Right Side - Clock In/Out */}
-      <div className="w-1/2 p-8 flex flex-col overflow-y-auto">
+      <div className="w-1/2 min-h-0 p-8 flex flex-col overflow-y-auto ios-scroll">
         {/* Header with Time */}
         <div className="text-center mb-6">
           <div className="flex items-center justify-center gap-3 mb-4">
@@ -274,7 +279,7 @@ const EmployeeKiosk = () => {
 
         {/* Selected Employee Card */}
         {selectedEmployee ? (
-          <div className="flex-1 flex flex-col">
+          <div className="flex-1 min-h-0 flex flex-col">
             <div className="bg-gray-800/50 rounded-2xl p-6 border border-gray-700 mb-4">
               <div className="flex items-center gap-4 mb-4">
                 <div className="w-14 h-14 rounded-full bg-emerald-600/20 flex items-center justify-center border-2 border-emerald-500">
@@ -347,7 +352,7 @@ const EmployeeKiosk = () => {
             {/* (History section removed) */}
           </div>
         ) : (
-          <div className="flex-1 flex items-center justify-center">
+          <div className="flex-1 min-h-0 flex items-center justify-center">
             <div className="text-center text-gray-500">
               <User className="w-20 h-20 mx-auto mb-4 opacity-50" />
               <p className="text-xl">Select an employee from the list</p>
