@@ -5,6 +5,18 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Employee Time Clock</title>
     <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Inline iOS scrolling + full-height root -->
+    <style>
+      html, body, #root {
+        height: 100%;
+        margin: 0;
+      }
+      /* Momentum scrolling on iOS Safari for nested scroll areas */
+      .ios-scroll {
+        -webkit-overflow-scrolling: touch;
+      }
+    </style>
   </head>
   <body>
     <div id="root"></div>
