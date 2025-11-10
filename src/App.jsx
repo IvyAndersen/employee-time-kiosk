@@ -365,7 +365,7 @@ const EmployeeKiosk = () => {
         {/* Configuration Notice */}
         <div className="mt-4 p-3 bg-emerald-600/10 border border-emerald-600/30 rounded-lg">
           <p className="text-emerald-300 text-xs text-center">
-            <strong>Ready to use:</strong> Have a nice shift.
+            <strong>System online:</strong> Thanks for being on time.
           </p>
         </div>
       </div>
