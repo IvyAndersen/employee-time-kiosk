@@ -362,7 +362,7 @@ const EmployeeKiosk = () => {
         )}
 
         {/* Configuration Notice */}
-    </div>
+    </div>{/*
   );
 };
 
